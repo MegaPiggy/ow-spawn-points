@@ -28,13 +28,12 @@ namespace OWSpawnPoints
         }
 
         public override void Configure(IModConfig config)
-        {
-            _suitUpOnTravel = config.GetSettingsValue<bool>("suitUpOnTravel");
-        }
+            => _suitUpOnTravel = config.GetSettingsValue<bool>("suitUpOnTravel");
 
         private void OnSceneLoaded(OWScene originalScene, OWScene scene)
         {
-            if (scene == OWScene.SolarSystem || scene == OWScene.EyeOfTheUniverse)
+            if (scene == OWScene.SolarSystem
+                || scene == OWScene.EyeOfTheUniverse)
             {
                 _isSolarSystemLoaded = true;
                 SpawnAtInitialPoint();
@@ -43,7 +42,8 @@ namespace OWSpawnPoints
 
         private void OnEvent(MonoBehaviour behaviour, Events ev)
         {
-            if (behaviour.GetType() == typeof(Flashlight) && ev == Events.AfterStart)
+            if (behaviour.GetType() == typeof(Flashlight)
+                && ev == Events.AfterStart)
             {
                 Init();
                 SpawnAtInitialPoint();
@@ -54,7 +54,7 @@ namespace OWSpawnPoints
         {
             _fluidDetector = Locator.GetPlayerCamera().GetComponentInChildren<FluidDetector>();
 
-            var mainButton = ModHelper.Menus.PauseMenu.OptionsButton.Duplicate("TELEPORT TO...");
+            var mainButton = ModHelper.Menus.PauseMenu.OptionsButton.Duplicate("TELEPORT");
 
             var shipSpawnMenu = ModHelper.Menus.PauseMenu.Copy("Ship Spawn Points");
             shipSpawnMenu.Buttons.ForEach(button => button.Hide());
@@ -68,10 +68,13 @@ namespace OWSpawnPoints
 
             var sourceButton = shipSpawnMenu.Buttons[0];
 
-            mainButton.OnClick += () => (
-                PlayerState.IsInsideShip() ? shipSpawnMenu : playerSpawnMenu
-            ).Open();
+            mainButton.OnClick += ()
+                => (PlayerState.IsInsideShip()
+                    ? shipSpawnMenu
+                    : playerSpawnMenu)
+                .Open();
 
+            var spawnPointsWithNoAO = Resources.FindObjectsOfTypeAll<SpawnPoint>().ToList();
             var astroObjects = Resources.FindObjectsOfTypeAll<AstroObject>().ToList();
             var astroSpawnPoints = new Dictionary<AstroObject, SpawnPoint[]>();
             var noAstroSpawnPoints = Resources.FindObjectsOfTypeAll<SpawnPoint>().ToList();
@@ -80,7 +83,7 @@ namespace OWSpawnPoints
             {
                 var attachedSpawnPoints = astroObject.GetComponentsInChildren<SpawnPoint>(true);
                 astroSpawnPoints[astroObject] = attachedSpawnPoints;
-                noAstroSpawnPoints = noAstroSpawnPoints.Except(attachedSpawnPoints).ToList();
+                spawnPointsWithNoAO = spawnPointsWithNoAO.Except(attachedSpawnPoints).ToList();
             }
 
             astroObjects.Sort((a, b) => astroSpawnPoints[a].Length.CompareTo(astroSpawnPoints[b].Length));
@@ -123,14 +126,14 @@ namespace OWSpawnPoints
                 }
             }
 
-            void CreateNoAstroSpawnPointList(List<SpawnPoint> spawnPoints, IModPopupMenu spawnMenu)
+            void CreateMiscSpawnPointList(List<SpawnPoint> spawnPoints, IModPopupMenu spawnMenu)
             {
                 var subMenu = ModHelper.Menus.PauseMenu.Copy("Spawn Points");
                 subMenu.Buttons.ForEach(button => button.Hide());
                 subMenu.Menu.transform.localScale *= 0.5f;
                 subMenu.Menu.transform.localPosition *= 0.5f;
 
-                var subButton = spawnMenu.AddButton(sourceButton.Copy("No AstroObject..."));
+                var subButton = spawnMenu.AddButton(sourceButton.Copy("<No Set AstroObject>"));
                 subButton.OnClick += () => subMenu.Open();
                 subButton.Show();
 
@@ -173,25 +176,25 @@ namespace OWSpawnPoints
                 }
             }
 
-            var noAstroShipSpawns = noAstroSpawnPoints.Where(point => point.IsShipSpawn()).ToList();
-            var noAstroPlayerSpawns = noAstroSpawnPoints.Where(point => !point.IsShipSpawn()).ToList();
+            var miscShipSpawns = spawnPointsWithNoAO.Where(point => point.IsShipSpawn()).ToList();
+            var miscPlayerSpawns = spawnPointsWithNoAO.Where(point => !point.IsShipSpawn()).ToList();
 
-            if (noAstroShipSpawns.Count > 1)
+            if (miscShipSpawns.Count > 1)
             {
-                CreateNoAstroSpawnPointList(noAstroShipSpawns, shipSpawnMenu);
+                CreateMiscSpawnPointList(miscShipSpawns, shipSpawnMenu);
             }
-            else if (noAstroShipSpawns.Count == 1)
+            else if (miscShipSpawns.Count == 1)
             {
-                CreateSpawnPointButton(noAstroShipSpawns[0], shipSpawnMenu, noAstroShipSpawns[0].name);
+                CreateSpawnPointButton(miscShipSpawns[0], shipSpawnMenu, miscShipSpawns[0].name);
             }
 
-            if (noAstroPlayerSpawns.Count > 1)
+            if (miscPlayerSpawns.Count > 1)
             {
-                CreateNoAstroSpawnPointList(noAstroPlayerSpawns, playerSpawnMenu);
+                CreateMiscSpawnPointList(miscPlayerSpawns, playerSpawnMenu);
             }
-            else if (noAstroPlayerSpawns.Count == 1)
+            else if (miscPlayerSpawns.Count == 1)
             {
-                CreateSpawnPointButton(noAstroPlayerSpawns[0], playerSpawnMenu, noAstroPlayerSpawns[0].name);
+                CreateSpawnPointButton(miscPlayerSpawns[0], playerSpawnMenu, miscPlayerSpawns[0].name);
             }
 
             var clearSaveButton = sourceButton.Copy("RESET INITIAL SPAWN POINT");
@@ -224,7 +227,9 @@ namespace OWSpawnPoints
             {
                 return astroObject.GetCustomName();
             }
-            else if (astroNameEnum == AstroObject.Name.None || astroName == null || astroName == "")
+            else if (astroNameEnum == AstroObject.Name.None
+                || astroName == null
+                || astroName == "")
             {
                 return astroObject.name;
             }
@@ -298,7 +303,8 @@ namespace OWSpawnPoints
 
         private void LateUpdate()
         {
-            if (_isSolarSystemLoaded && _saveFile.initialSpawnPoint != "")
+            if (_isSolarSystemLoaded
+                && _saveFile.initialSpawnPoint != "")
             {
                 InstantWakeUp();
             }
