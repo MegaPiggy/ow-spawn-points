@@ -77,6 +77,7 @@ namespace OWSpawnPoints
             var spawnPointsWithNoAO = Resources.FindObjectsOfTypeAll<SpawnPoint>().ToList();
             var astroObjects = Resources.FindObjectsOfTypeAll<AstroObject>().ToList();
             var astroSpawnPoints = new Dictionary<AstroObject, SpawnPoint[]>();
+            var noAstroSpawnPoints = Resources.FindObjectsOfTypeAll<SpawnPoint>().ToList();
 
             foreach (var astroObject in astroObjects)
             {
